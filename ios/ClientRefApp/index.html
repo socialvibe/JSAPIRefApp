@@ -1,0 +1,107 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Mobile Web Integration Test</title>
+            <script type="text/javascript" src="//code.jquery.com/jquery-1.5.2.min.js"></script>
+            <script type='text/javascript' src='https://static.truex.com/js/client.js'></script>
+            
+    </head>
+    <body>
+        
+        <div data-role="page">
+            
+            <div data-role="header">
+                <h1>Mobile Web Test</h1>
+            </div><!-- /header -->
+            
+            <div data-role="content">
+                <p>Tap to trigger the engagement</p>
+                <div id="sv_promo">
+                    <img id="sv_activity_image"><br/>
+                        <a id="sv_activity_link"></a>
+                </div>
+                <div id="sv_container" style="position: fixed; width: 100%; height: 100%;z-index:1000;margin:auto;top:0;left:0;"></div>
+                
+            </div><!-- /content -->
+            <script type='text/javascript'>
+                
+                function myTime(){
+                    var d = new Date();
+                    var n = d.toLocaleTimeString();
+                    return n;
+                };
+                /* globals truex */
+                
+                document.getElementById("sv_container").style.display = "none";
+
+                var options = {
+                    network_user_id: "@%", //pull adv id into
+                    partner_config_hash: "#partner_config_hash" //provide hash here
+                };
+                
+                //pull adv id
+                //add extra web view on URL click
+
+                truex.client(options, function(client) {
+                    client.requestActivity(function(activity) {
+                        console.log("AdRequest " + myTime());
+                        if (activity) {
+                            
+                            activity.onStart(function(activity){
+                                console.log("Start " + myTime());
+                            });
+                            
+                            activity.onCredit(function(engagement){
+                                console.log("Credit " + myTime());
+                            }); //verify signature within the credit call
+                            
+                            activity.onFinish(function(activity){
+                                console.log("Finish " + myTime());
+                                document.getElementById("sv_container").style.display = "none";
+                                $( "#sv_container" ).empty();
+                            });
+                            activity.onClose(function(activity){
+                                console.log("Close " + myTime());
+                            });
+                            showSvAd(activity, client);
+                        } else {
+                            $(':last').after('<div>no activities</div>');
+                        }
+                    });
+                });
+                
+                function showSvAd(activity,client){
+                    var promo = document.getElementById('sv_promo');
+                    var activity_link = document.getElementById('sv_activity_link');
+                    var activity_image = document.getElementById('sv_activity_image');
+                    
+                    if (!activity) {
+                        activity_image.style.display = 'none';
+                        activity_link.removeAttribute('onclick');
+                        activity_link.removeAttribute('href');
+                        activity_link.innerHTML = 'No activities available.';
+                    }
+                    else {
+                        promo.onclick = function(){
+                            document.getElementById("sv_container").style.display = "block";
+                            client.loadActivityIntoContainer(activity, document.getElementById('sv_container'), {
+                                width: '0px',
+                                height: '0px',
+                                minWidth: '100%',
+                                minHeight: '100%'
+                            });
+                            
+                            return false;
+                        };
+                        
+                        activity_image.src = activity.image_url;
+                        activity_image.style.display = 'block';
+                        activity_link.innerHTML = activity.display_text;
+                        activity_link.href = '#';
+                    }
+                };
+                
+            </script>
+            
+    </body>
+</html>
