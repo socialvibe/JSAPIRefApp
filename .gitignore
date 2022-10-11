@@ -104,3 +104,4 @@ iOSInjectionProject/
 .externalNativeBuild
 .cxx
 local.properties
+android/app/release/
