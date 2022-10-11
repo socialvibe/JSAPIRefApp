@@ -31,17 +31,13 @@
                     return n;
                 };
                 /* globals truex */
-                
+
                 document.getElementById("sv_container").style.display = "none";
 
                 var options = {
-                    network_user_id: "#network_user_id", //pull adv id into
-                    partner_config_hash: "#partner_config_hash",
+                    network_user_id: Android.getClientID(),
+                    partner_config_hash: Android.getClientHash(),
                 };
-
-
-                //pull adv id
-                //add extra web view on URL click
 
                 truex.client(options, function(client) {
                     client.requestActivity(function(activity) {
@@ -103,5 +99,6 @@
                 };
                 
             </script>
+        </div>
     </body>
 </html>
