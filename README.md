@@ -8,4 +8,4 @@ Please note that mobile advertising Id is not working on simulator, if you are t
 
 ## Android:
 
-Inside class `WebViewActivity` set variables `clientId` and `partnerConfigHash` accordingly. 
+Inside class `WebViewActivity` set variable `partnerConfigHash`. Variable `clientId` is automatically fetched and set to Android Advertising Id. 
