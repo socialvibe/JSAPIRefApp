@@ -6,11 +6,13 @@ import android.os.Bundle
 import android.util.Log
 import android.webkit.*
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import java.io.IOException
 
 
 class WebViewActivity : AppCompatActivity() {
 
-    private val clientId: String = "SET_ME"
     private val partnerConfigHash: String = "SET_ME"
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -49,7 +51,18 @@ class WebViewActivity : AppCompatActivity() {
     /** Use this functions for JS script  */
     @JavascriptInterface
     fun getClientID(): String {
-        return clientId
+        var adInfo: AdvertisingIdClient.Info? = null
+
+        try {
+            adInfo = AdvertisingIdClient.getAdvertisingIdInfo(this)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: GooglePlayServicesNotAvailableException) {
+            e.printStackTrace()
+        }
+
+        val adId: String? = adInfo?.id
+        return adId ?: "some_default_value_to_be_provided"
     }
 
     @JavascriptInterface
