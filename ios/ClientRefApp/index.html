@@ -31,47 +31,44 @@
                     return n;
                 };
                 /* globals truex */
-                
+
                 document.getElementById("sv_container").style.display = "none";
-
-                var options = {
-                    network_user_id: "swag_mobile_1234567", //pull adv id into
-                    partner_config_hash: "d6db271334a18f547f83182fcf3f6947915265c2"
-                    //"d6db271334a18f547f83182fcf3f6947915265c2"
-                    //"c0b37fa4bd62dd79046e392aa4f6f005aae4f2e5"
-                };
                 
-                //pull adv id
-                //add extra web view on URL click
+                function runClient(user_id, hash) {
+                    var options = {
+                        network_user_id: user_id,
+                        partner_config_hash: hash,
+                    };
 
-                truex.client(options, function(client) {
-                    client.requestActivity(function(activity) {
-                        console.log("AdRequest " + myTime());
-                        if (activity) {
-                            
-                            activity.onStart(function(activity){
-                                console.log("Start " + myTime());
-                            });
-                            
-                            activity.onCredit(function(engagement){
-                                console.log("Credit " + myTime());
-                            }); //verify signature within the credit call
-                            
-                            activity.onFinish(function(activity){
-                                console.log("Finish " + myTime());
-                                document.getElementById("sv_container").style.display = "none";
-                                $( "#sv_container" ).empty();
-                            });
-                            activity.onClose(function(activity){
-                                console.log("Close " + myTime());
-                            });
-                            showSvAd(activity, client);
-                        } else {
-                            $(':last').after('<div>no activities</div>');
-                        }
+                    truex.client(options, function(client) {
+                        client.requestActivity(function(activity) {
+                            console.log("AdRequest " + myTime());
+                            if (activity) {
+                                
+                                activity.onStart(function(activity){
+                                    console.log("Start " + myTime());
+                                });
+                                
+                                activity.onCredit(function(engagement){
+                                    console.log("Credit " + myTime());
+                                }); //verify signature within the credit call
+                                
+                                activity.onFinish(function(activity){
+                                    console.log("Finish " + myTime());
+                                    document.getElementById("sv_container").style.display = "none";
+                                    $( "#sv_container" ).empty();
+                                });
+                                activity.onClose(function(activity){
+                                    console.log("Close " + myTime());
+                                });
+                                showSvAd(activity, client);
+                            } else {
+                                $(':last').after('<div>no activities</div>');
+                            }
+                        });
                     });
-                });
-                
+                };
+
                 function showSvAd(activity,client){
                     var promo = document.getElementById('sv_promo');
                     var activity_link = document.getElementById('sv_activity_link');
@@ -104,6 +101,6 @@
                 };
                 
             </script>
-            
+        </div>
     </body>
 </html>

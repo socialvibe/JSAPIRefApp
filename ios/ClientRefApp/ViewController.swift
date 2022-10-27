@@ -15,12 +15,10 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var webView: WKWebView!
     
+    let config_hash = "#set_this_value"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let controller = webView?.configuration.userContentController
-        
-        controller?.add(self, name: "error")
         
         webView.uiDelegate = self
         webView.navigationDelegate = self
@@ -28,67 +26,35 @@ class ViewController: UIViewController {
         if let filePath = Bundle.main.url(forResource: "index", withExtension: "html") {
             
             let contentData = FileManager.default.contents(atPath: filePath.path)
-            let emailTemplate = NSString(data: contentData!, encoding: String.Encoding.utf8.rawValue) as? String
-            //Set network_user_id to apple adv ID
-            let replacedHtmlContent = emailTemplate?.replacingOccurrences(of: "@%", with: getIDFA() ?? "")
-            let replacedHtmlData = replacedHtmlContent?.data(using: .utf8)
-            
-            webView.load(replacedHtmlData!, mimeType: "html", characterEncodingName: "utf8", baseURL: filePath)
+            webView.load(contentData!, mimeType: "html", characterEncodingName: "utf8", baseURL: filePath)
         }
     }
     
-    func getIDFA() -> String? {
+    func getIDFA() -> String {
         // Check if Advertising Tracking is Enabled
         if ASIdentifierManager.shared().isAdvertisingTrackingEnabled {
             // Set the IDFA
             return ASIdentifierManager.shared().advertisingIdentifier.uuidString
         }
-        return nil
+        return "some_default_value"
     }
-    
 }
 
 extension ViewController: WKScriptMessageHandler, WKUIDelegate, WKNavigationDelegate {
     // Called for messages received by
     // WKWebView message handlers
-    func userContentController(
-        _ userContentController: WKUserContentController,
-        didReceive message: WKScriptMessage) {
-            
-            // The WKScriptMessageHandler name
-            // of the sender is message.name
-            if message.name == "error" {
-                // Parse the response object to obtain the error
-                let body = message.body as? [String: Any]
-                let error = body?["message"] as? String
-                print(error ?? "empty err")
-            }
-        }
-    
-    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    func userContentController(_ userContentController: WKUserContentController,didReceive message: WKScriptMessage) {
         
-        guard let serverTrust = challenge.protectionSpace.serverTrust else {
-            completionHandler(.cancelAuthenticationChallenge, nil)
-            return
+        // The WKScriptMessageHandler name
+        // of the sender is message.name
+        if message.name == "error" {
+            // Parse the response object to obtain the error
+            let body = message.body as? [String: Any]
+            let error = body?["message"] as? String
+            print(error ?? "empty err")
         }
-        let exceptions = SecTrustCopyExceptions(serverTrust)
-        SecTrustSetExceptions(serverTrust, exceptions)
-        completionHandler(.useCredential, URLCredential(trust: serverTrust));
     }
-    
-    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
-        let alertController = UIAlertController(title: "", message: message, preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: "확인", style: .default, handler: { (action) in
-            completionHandler()
-        }))
-        
-        self.present(alertController, animated: true, completion: nil)
-    }
-    
-    //MARK: - confirm
-    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
-    }
-    
+    //Need this to open Web View URLs
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         //if let url = navigationAction.request.url {...}
         if navigationAction.targetFrame == nil {
@@ -96,7 +62,7 @@ extension ViewController: WKScriptMessageHandler, WKUIDelegate, WKNavigationDele
         }
         return nil
     }
-    
+
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         webView.reload()
     }
@@ -122,6 +88,10 @@ extension ViewController: WKScriptMessageHandler, WKUIDelegate, WKNavigationDele
         }
         
         decisionHandler(.allow)
+    }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        self.webView.evaluateJavaScript("runClient('\(getIDFA())', '\(config_hash)')", completionHandler: nil)
     }
 }
 
